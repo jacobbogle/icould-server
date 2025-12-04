@@ -4,6 +4,7 @@
     <title>iCloud Audio Server</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f0f0f0; padding: 10px; border-bottom: 1px solid #ccc; }
         .tabs { display: flex; border-bottom: 1px solid #ccc; }
         .tab { padding: 10px 20px; cursor: pointer; background: #f1f1f1; border: 1px solid #ccc; border-bottom: none; }
         .tab.active { background: white; border-bottom: 1px solid white; }
@@ -12,7 +13,10 @@
     </style>
 </head>
 <body>
-    <h1>iCloud Audio Server - {{ directory or "root" }}</h1>
+    <div class="header">
+        <h1>iCloud Audio Server - {{ directory or "root" }}</h1>
+        <p>Logged in as: admin</p>
+    </div>
     
     <div class="tabs">
         <div class="tab active" onclick="showTab('files')">Audio Files</div>
