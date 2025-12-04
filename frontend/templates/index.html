@@ -20,23 +20,11 @@
     </div>
     
     <div id="files" class="tab-content active">
-        <h2>Audio Files</h2>
-        {% if files %}
-        {% for name in files %}
-        <a href="/download/{{ name }}">{{ name }}</a><br>
-        {% endfor %}
-        {% else %}
-        <p>No audio files found.</p>
-        {% endif %}
+        {% include '_files_tab.html' %}
     </div>
     
     <div id="sync" class="tab-content">
-        <h2>Sync Local Directory to iCloud</h2>
-        <form action="/sync" method="post">
-            <label for="local_dir">Local Directory Path:</label><br>
-            <input type="text" id="local_dir" name="local_dir" required><br><br>
-            <input type="submit" value="Sync">
-        </form>
+        {% include '_sync_tab.html' %}
     </div>
     
     <br><a href="/logout">Logout</a>
