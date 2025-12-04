@@ -15,13 +15,16 @@
 <body>
     <div class="header">
         <h1>iCloud Audio Server - {{ directory or "root" }}</h1>
-        <p>Logged in as: admin</p>
+        <p>Logged in as: {{ username }}</p>
     </div>
     
     <div class="tabs">
         <div class="tab active" onclick="showTab('files')">Audio Files</div>
         <div class="tab" onclick="showTab('sync')">Sync</div>
         <div class="tab" onclick="showTab('settings')">Settings</div>
+        {% if username == 'admin' %}
+        <div class="tab" onclick="showTab('users')">Users</div>
+        {% endif %}
     </div>
     
     <div id="files" class="tab-content active">
@@ -35,6 +38,12 @@
     <div id="settings" class="tab-content">
         {% include 'tabs/_settings_tab.html' %}
     </div>
+    
+    {% if username == 'admin' %}
+    <div id="users" class="tab-content">
+        {% include 'tabs/_users_tab.html' %}
+    </div>
+    {% endif %}
     
     <br><a href="/logout">Logout</a>
     

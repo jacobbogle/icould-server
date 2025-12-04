@@ -1,6 +1,9 @@
 # Environment variables
 .env
 
+# User data
+backend/users.json
+
 # Admin password
 backend/admin_password.txt
 
