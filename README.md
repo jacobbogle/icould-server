@@ -6,15 +6,13 @@ A simple Flask server to serve download links for audio files from an iCloud Dri
 
 1. Install dependencies: `pip install -r requirements.txt`
 
-2. Set environment variables for your Apple ID:
-   - `APPLE_ID`: Your Apple ID email
-   - `APPLE_PASSWORD`: Your Apple ID password
-
-   On Windows PowerShell:
-   ```
-   $env:APPLE_ID = "your@email.com"
-   $env:APPLE_PASSWORD = "yourpassword"
-   ```
+2. Set up environment variables:
+   - Copy `.env.example` to `.env`
+   - Fill in your Apple ID credentials in `.env`:
+     ```
+     APPLE_ID=your_apple_id@example.com
+     APPLE_PASSWORD=your_apple_password
+     ```
 
 3. Run the server:
    ```

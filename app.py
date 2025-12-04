@@ -2,6 +2,9 @@ import os
 import sys
 from flask import Flask, Response
 from pyicloud import PyiCloudService
+from dotenv import load_dotenv
+
+load_dotenv()
 
 apple_id = os.getenv('APPLE_ID')
 password = os.getenv('APPLE_PASSWORD')
