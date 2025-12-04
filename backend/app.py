@@ -17,4 +17,4 @@ app.add_url_rule('/sync/<path:local_dir>', 'sync', login_required(sync))
 app.add_url_rule('/sync', 'sync_post', login_required(sync), methods=['POST'])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
