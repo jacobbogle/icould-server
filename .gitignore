@@ -4,6 +4,9 @@
 # User data
 backend/users.json
 
+# iCloud credentials
+backend/icloud_credentials.json
+
 # Admin password
 backend/admin_password.txt
 

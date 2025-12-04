@@ -1,6 +1,9 @@
 import sys
+import os
+import json
 from pyicloud import PyiCloudService
-from config import APPLE_ID, APPLE_PASSWORD
+
+CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), 'icloud_credentials.json')
 
 api = None
 authenticated = False
@@ -10,12 +13,26 @@ folder = None
 extensions = ('.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a')
 files = {}
 
+def load_credentials():
+    if os.path.exists(CREDENTIALS_FILE):
+        with open(CREDENTIALS_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+def save_credentials(apple_id, apple_password):
+    with open(CREDENTIALS_FILE, 'w') as f:
+        json.dump({'apple_id': apple_id, 'apple_password': apple_password}, f)
+
 def authenticate(twofa_code=None):
     global api, authenticated, folder, directory, requires_2fa
+    creds = load_credentials()
+    apple_id = creds.get('apple_id')
+    apple_password = creds.get('apple_password')
+    if not apple_id or not apple_password:
+        return False
+    
     if api is None:
-        if not APPLE_ID or not APPLE_PASSWORD:
-            return False
-        api = PyiCloudService(APPLE_ID, APPLE_PASSWORD)
+        api = PyiCloudService(apple_id, apple_password)
     
     if api.requires_2fa:
         if twofa_code:
@@ -44,10 +61,6 @@ def authenticate(twofa_code=None):
             folder = api.drive.root
         refresh_files()
     return authenticated
-
-# Try to authenticate without 2FA first
-if APPLE_ID and APPLE_PASSWORD:
-    authenticate()
 
 def refresh_files():
     global files

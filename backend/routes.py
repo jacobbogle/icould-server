@@ -1,6 +1,6 @@
 import os
 from flask import Response, render_template, request, session
-from icloud_service import api, folder, files, refresh_files, extensions, directory, authenticate as icloud_authenticate, authenticated as icloud_authenticated, requires_2fa as icloud_requires_2fa
+from icloud_service import api, folder, files, refresh_files, extensions, directory, authenticate as icloud_authenticate, authenticated as icloud_authenticated, requires_2fa as icloud_requires_2fa, save_credentials, load_credentials
 
 def index():
     return render_template('index.html', files=list(files.keys()), directory=directory, username=session.get('username'), icloud_authenticated=icloud_authenticated)
@@ -60,18 +60,35 @@ def users():
 def icloud_login():
     if session.get('username') != 'admin':
         return "Access denied", 403
+    creds = load_credentials()
+    has_creds = bool(creds.get('apple_id') and creds.get('apple_password'))
     if request.method == 'POST':
-        twofa_code = request.form.get('twofa_code')
-        result = icloud_authenticate(twofa_code)
-        if result == '2fa_required':
-            return render_template('icloud_login.html', requires_2fa=True, error=None)
-        elif result:
-            return redirect(url_for('index'))
+        if 'apple_id' in request.form:
+            # Setting credentials
+            apple_id = request.form['apple_id']
+            apple_password = request.form['apple_password']
+            save_credentials(apple_id, apple_password)
+            # Try to authenticate
+            result = icloud_authenticate()
+            if result == '2fa_required':
+                return render_template('icloud_login.html', requires_2fa=True, has_creds=True, error=None)
+            elif result:
+                return redirect(url_for('index'))
+            else:
+                return render_template('icloud_login.html', has_creds=True, error="Authentication failed")
         else:
-            return render_template('icloud_login.html', requires_2fa=True, error="Invalid 2FA code")
+            # Submitting 2FA code
+            twofa_code = request.form.get('twofa_code')
+            result = icloud_authenticate(twofa_code)
+            if result:
+                return redirect(url_for('index'))
+            else:
+                return render_template('icloud_login.html', requires_2fa=True, has_creds=True, error="Invalid 2FA code")
     if icloud_authenticated:
-        return render_template('icloud_login.html', authenticated=True)
+        return render_template('icloud_login.html', authenticated=True, has_creds=True)
     elif icloud_requires_2fa:
-        return render_template('icloud_login.html', requires_2fa=True)
+        return render_template('icloud_login.html', requires_2fa=True, has_creds=True)
+    elif has_creds:
+        return render_template('icloud_login.html', has_creds=True, retry=True)
     else:
-        return render_template('icloud_login.html', retry=True)
+        return render_template('icloud_login.html', has_creds=False)
