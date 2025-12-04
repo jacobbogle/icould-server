@@ -44,7 +44,8 @@ def change_password():
         confirm = request.form['confirm_password']
         if current == get_admin_password() and new == confirm:
             set_admin_password(new)
-            return "Password changed successfully."
+            return redirect(url_for('index'))
         else:
-            return "Invalid current password or passwords do not match."
+            error = "Invalid current password or passwords do not match."
+            return render_template('change_password.html', error=error)
     return render_template('change_password.html')

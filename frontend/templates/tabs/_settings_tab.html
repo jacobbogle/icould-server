@@ -1,2 +1,15 @@
 <h2>Settings</h2>
-<a href="/change_password">Change Password</a>
+<ul>
+    <li>
+        <h3>Change Password</h3>
+        <form method="post" action="/change_password">
+            <label for="current_password">Current Password:</label><br>
+            <input type="password" id="current_password" name="current_password" required><br><br>
+            <label for="new_password">New Password:</label><br>
+            <input type="password" id="new_password" name="new_password" required><br><br>
+            <label for="confirm_password">Confirm New Password:</label><br>
+            <input type="password" id="confirm_password" name="confirm_password" required><br><br>
+            <input type="submit" value="Change Password">
+        </form>
+    </li>
+</ul>
