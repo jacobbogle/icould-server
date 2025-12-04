@@ -62,6 +62,16 @@ def authenticate(twofa_code=None):
         refresh_files()
     return authenticated
 
+def refresh_files():
+    global files
+    if not authenticated or folder is None:
+        files = {}
+        return
+    files = {}
+    for child in folder.get_children():
+        if child.type == 'file' and child.name.lower().endswith(extensions):
+            files[child.name] = child
+
 def is_registered():
     creds = load_credentials()
     return bool(creds.get('apple_id') and creds.get('apple_password'))

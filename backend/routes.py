@@ -4,7 +4,19 @@ from icloud_service import api, folder, files, refresh_files, extensions, direct
 from auth import create_user, delete_user, get_users
 
 def index():
-    return render_template('index.html', files=list(files.keys()), directory=directory, username=session.get('username'), icloud_authenticated=icloud_authenticated, is_registered=is_registered())
+    if request.method == 'POST':
+        if session.get('username') != 'admin':
+            return "Access denied", 403
+        action = request.form.get('action')
+        if action == 'create':
+            username = request.form['username']
+            password = request.form['password']
+            create_user(username, password)
+        elif action == 'delete':
+            username = request.form['username']
+            delete_user(username)
+    users_list = get_users()
+    return render_template('index.html', files=list(files.keys()), directory=directory, username=session.get('username'), icloud_authenticated=icloud_authenticated, is_registered=is_registered(), users=users_list)
 
 def download(filename):
     if filename not in files:
@@ -40,23 +52,6 @@ def sync(local_dir=None):
     
     refresh_files()
     return f"Synced {synced} files and deleted {deleted} files. Local: {local_dir} to iCloud Drive {directory or 'root'}."
-
-def users():
-    if session.get('username') != 'admin':
-        return "Access denied", 403
-    if request.method == 'POST':
-        action = request.form.get('action')
-        if action == 'create':
-            username = request.form['username']
-            password = request.form['password']
-            if not create_user(username, password):
-                return "User already exists", 400
-        elif action == 'delete':
-            username = request.form['username']
-            if not delete_user(username):
-                return "Cannot delete user", 400
-    users_list = get_users()
-    return render_template('tabs/_users_tab.html', users=users_list)
 
 def icloud_login():
     if session.get('username') != 'admin':

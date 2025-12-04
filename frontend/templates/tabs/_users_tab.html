@@ -1,7 +1,7 @@
 <h2>User Management</h2>
 
 <h3>Create New User</h3>
-<form method="post" action="/users">
+<form method="post" action="/">
     <input type="hidden" name="action" value="create">
     <label>Username: <input type="text" name="username" required></label><br>
     <label>Password: <input type="password" name="password" required></label><br>
@@ -14,7 +14,7 @@
     <li>
         {{ user }}
         {% if user != 'admin' %}
-        <form method="post" action="/users" style="display:inline;">
+        <form method="post" action="/" style="display:inline;">
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="username" value="{{ user }}">
             <button type="submit" onclick="return confirm('Are you sure you want to delete {{ user }}?')">Delete</button>
