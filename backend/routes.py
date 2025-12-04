@@ -1,10 +1,9 @@
 import os
 from flask import Response, render_template, request, session
-from icloud_service import api, folder, files, refresh_files, extensions, directory
-from auth import create_user, delete_user, get_users
+from icloud_service import api, folder, files, refresh_files, extensions, directory, authenticate as icloud_authenticate, authenticated as icloud_authenticated, requires_2fa as icloud_requires_2fa
 
 def index():
-    return render_template('index.html', files=list(files.keys()), directory=directory, username=session.get('username'))
+    return render_template('index.html', files=list(files.keys()), directory=directory, username=session.get('username'), icloud_authenticated=icloud_authenticated)
 
 def download(filename):
     if filename not in files:
@@ -57,3 +56,22 @@ def users():
                 return "Cannot delete user", 400
     users_list = get_users()
     return render_template('tabs/_users_tab.html', users=users_list)
+
+def icloud_login():
+    if session.get('username') != 'admin':
+        return "Access denied", 403
+    if request.method == 'POST':
+        twofa_code = request.form.get('twofa_code')
+        result = icloud_authenticate(twofa_code)
+        if result == '2fa_required':
+            return render_template('icloud_login.html', requires_2fa=True, error=None)
+        elif result:
+            return redirect(url_for('index'))
+        else:
+            return render_template('icloud_login.html', requires_2fa=True, error="Invalid 2FA code")
+    if icloud_authenticated:
+        return render_template('icloud_login.html', authenticated=True)
+    elif icloud_requires_2fa:
+        return render_template('icloud_login.html', requires_2fa=True)
+    else:
+        return render_template('icloud_login.html', retry=True)

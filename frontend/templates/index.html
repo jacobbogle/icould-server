@@ -16,7 +16,17 @@
     <div class="header">
         <h1>iCloud Audio Server - {{ directory or "root" }}</h1>
         <p>Logged in as: {{ username }}</p>
+        {% if username == 'admin' %}
+        <div style="float: right;">
+            {% if icloud_authenticated %}
+            <span style="color: green;">☁️ iCloud Connected</span>
+            {% else %}
+            <a href="/icloud_login" style="color: red;">☁️ iCloud Login Required</a>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
+    <div style="clear: both;"></div>
     
     <div class="tabs">
         <div class="tab active" onclick="showTab('files')">Audio Files</div>

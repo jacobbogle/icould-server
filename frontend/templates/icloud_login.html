@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>iCloud Login</title>
+</head>
+<body>
+    <h1>iCloud Authentication</h1>
+    {% if authenticated %}
+    <p>iCloud is already authenticated.</p>
+    <a href="/">Back to Home</a>
+    {% elif requires_2fa %}
+    <p>Two-factor authentication is required. Please enter the code sent to your device.</p>
+    <form method="post">
+        <label>2FA Code: <input type="text" name="twofa_code" required></label>
+        <button type="submit">Submit</button>
+    </form>
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    {% elif retry %}
+    <p>Authentication failed. Please check your credentials in .env and try again.</p>
+    <form method="post">
+        <button type="submit">Retry Authentication</button>
+    </form>
+    {% else %}
+    <p>Attempting to authenticate with iCloud...</p>
+    {% endif %}
+    <br><a href="/">Back to Home</a>
+</body>
+</html>
