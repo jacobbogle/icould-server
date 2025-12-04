@@ -56,8 +56,7 @@ def authenticate(twofa_code=None):
             folder = api.drive.root[folder_name]
         except KeyError:
             # Folder doesn't exist, create it
-            api.drive.create_folder(folder_name)
-            folder = api.drive.root[folder_name]
+            folder = api.drive.root.mkdir(folder_name)
         directory = folder_name
         refresh_files()
     return authenticated
