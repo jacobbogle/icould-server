@@ -1,10 +1,10 @@
 import os
 from flask import Response, render_template, request, session, redirect, url_for
-from icloud_service import api, folder, files, refresh_files, extensions, directory, authenticate as icloud_authenticate, authenticated as icloud_authenticated, requires_2fa as icloud_requires_2fa, save_credentials, load_credentials
+from icloud_service import api, folder, files, refresh_files, extensions, directory, authenticate as icloud_authenticate, authenticated as icloud_authenticated, requires_2fa as icloud_requires_2fa, save_credentials, load_credentials, is_registered
 from auth import create_user, delete_user, get_users
 
 def index():
-    return render_template('index.html', files=list(files.keys()), directory=directory, username=session.get('username'), icloud_authenticated=icloud_authenticated)
+    return render_template('index.html', files=list(files.keys()), directory=directory, username=session.get('username'), icloud_authenticated=icloud_authenticated, is_registered=is_registered())
 
 def download(filename):
     if filename not in files:

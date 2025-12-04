@@ -50,18 +50,18 @@ def authenticate(twofa_code=None):
         requires_2fa = False
     
     if authenticated and folder is None:
-        # Use root folder for now
-        folder = api.drive.root
-        directory = ""
+        # Create or get the dedicated folder
+        folder_name = "00_iCloud-Server"
+        try:
+            folder = api.drive.root[folder_name]
+        except KeyError:
+            # Folder doesn't exist, create it
+            api.drive.root.mkdir(folder_name)
+            folder = api.drive.root[folder_name]
+        directory = folder_name
         refresh_files()
     return authenticated
 
-def refresh_files():
-    global files
-    if not authenticated or folder is None:
-        files = {}
-        return
-    files = {}
-    for child in folder.get_children():
-        if child.type == 'file' and child.name.lower().endswith(extensions):
-            files[child.name] = child
+def is_registered():
+    creds = load_credentials()
+    return bool(creds.get('apple_id') and creds.get('apple_password'))

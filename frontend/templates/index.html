@@ -20,6 +20,8 @@
         <div style="float: right;">
             {% if icloud_authenticated %}
             <span style="color: green;">☁️ iCloud Connected</span>
+            {% elif is_registered %}
+            <span style="color: blue;">☁️ iCloud Registered Successfully</span>
             {% else %}
             <a href="/icloud_login" style="color: red;">☁️ iCloud Login Required</a>
             {% endif %}
