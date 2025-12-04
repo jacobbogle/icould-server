@@ -2,13 +2,29 @@
 
 A simple Flask server to serve download links for audio files from an iCloud Drive directory and sync local audio files to iCloud.
 
+## Project Structure
+
+- `backend/`: Python application code
+  - `app.py`: Main Flask app
+  - `config.py`: Configuration and environment variables
+  - `icloud_service.py`: iCloud integration
+  - `auth.py`: Authentication logic
+  - `routes.py`: Route handlers
+  - `requirements.txt`: Python dependencies
+  - `.env.example`: Environment variables template
+- `frontend/`: Frontend assets
+  - `templates/`: Jinja2 HTML templates
+  - `static/`: CSS, JS, images
+- `.gitignore`: Git ignore rules
+- `README.md`: This file
+
 ## Setup
 
-1. Install dependencies: `pip install -r requirements.txt`
+1. Install dependencies: `pip install -r backend/requirements.txt`
 
 2. Set up environment variables:
-   - Copy `.env.example` to `.env`
-   - Fill in your Apple ID credentials and a secret key in `.env`:
+   - Copy `backend/.env.example` to `backend/.env`
+   - Fill in your Apple ID credentials and a secret key in `backend/.env`:
      ```
      APPLE_ID=your_apple_id@example.com
      APPLE_PASSWORD=your_apple_password
@@ -17,6 +33,7 @@ A simple Flask server to serve download links for audio files from an iCloud Dri
 
 3. Run the server:
    ```
+   cd backend
    python app.py [directory_name]
    ```
    - `directory_name`: Optional subfolder in iCloud Drive root (e.g., "Music"). If omitted, uses root.

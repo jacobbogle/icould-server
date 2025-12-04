@@ -3,7 +3,7 @@ from config import SECRET_KEY
 from auth import login_required, login, logout
 from routes import index, download, sync
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
 app.secret_key = SECRET_KEY
 
 app.add_url_rule('/login', 'login', login, methods=['GET', 'POST'])

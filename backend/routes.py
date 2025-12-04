@@ -1,10 +1,9 @@
 import os
-from flask import Response
+from flask import Response, render_template
 from icloud_service import api, folder, files, refresh_files, extensions, directory
 
 def index():
-    links = ''.join(f'<a href="/download/{name}">{name}</a><br>' for name in files)
-    return f'<html><body><h1>Audio Files in iCloud Drive {directory or "root"}</h1>{links}<br><a href="/logout">Logout</a></body></html>'
+    return render_template('index.html', files=list(files.keys()), directory=directory)
 
 def download(filename):
     if filename not in files:

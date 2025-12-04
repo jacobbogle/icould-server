@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>iCloud Audio Server</title>
+</head>
+<body>
+    <h1>Audio Files in iCloud Drive {{ directory or "root" }}</h1>
+    {% for name in files %}
+    <a href="/download/{{ name }}">{{ name }}</a><br>
+    {% endfor %}
+    <br><a href="/logout">Logout</a>
+</body>
+</html>
