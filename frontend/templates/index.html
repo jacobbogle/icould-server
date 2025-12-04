@@ -21,6 +21,7 @@
     <div class="tabs">
         <div class="tab active" onclick="showTab('files')">Audio Files</div>
         <div class="tab" onclick="showTab('sync')">Sync</div>
+        <div class="tab" onclick="showTab('settings')">Settings</div>
     </div>
     
     <div id="files" class="tab-content active">
@@ -29,6 +30,10 @@
     
     <div id="sync" class="tab-content">
         {% include 'tabs/_sync_tab.html' %}
+    </div>
+    
+    <div id="settings" class="tab-content">
+        {% include 'tabs/_settings_tab.html' %}
     </div>
     
     <br><a href="/logout">Logout</a>
