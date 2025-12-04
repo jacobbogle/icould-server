@@ -50,15 +50,15 @@ def authenticate(twofa_code=None):
         requires_2fa = False
     
     if authenticated and folder is None:
-        # Set directory from config or default
-        directory = ''  # or from env
-        if directory:
-            try:
-                folder = api.drive.root[directory]
-            except KeyError:
-                return False
-        else:
-            folder = api.drive.root
+        # Create or get the dedicated folder
+        folder_name = "AAA_iCloud-Server"
+        try:
+            folder = api.drive.root[folder_name]
+        except KeyError:
+            # Folder doesn't exist, create it
+            api.drive.create_folder(folder_name)
+            folder = api.drive.root[folder_name]
+        directory = folder_name
         refresh_files()
     return authenticated
 
