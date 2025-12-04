@@ -1,6 +1,6 @@
 import os
 import sys
-from flask import Flask, Response
+from flask import Flask, Response, request, redirect, url_for, session, render_template_string
 from pyicloud import PyiCloudService
 from dotenv import load_dotenv
 
@@ -43,13 +43,61 @@ def refresh_files():
 refresh_files()
 
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')
+
+def login_required(f):
+    def wrapper(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    wrapper.__name__ = f.__name__
+    return wrapper
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username == 'admin' and password == 'password':
+            session['logged_in'] = True
+            return redirect(url_for('index'))
+        else:
+            return render_template_string('''
+            <html><body>
+            <h1>Login</h1>
+            <form method="post">
+                Username: <input type="text" name="username"><br>
+                Password: <input type="password" name="password"><br>
+                <input type="submit" value="Login">
+            </form>
+            <p>Invalid credentials</p>
+            </body></html>
+            ''')
+    return render_template_string('''
+    <html><body>
+    <h1>Login</h1>
+    <form method="post">
+        Username: <input type="text" name="username"><br>
+        Password: <input type="password" name="password"><br>
+        <input type="submit" value="Login">
+    </form>
+    </body></html>
+    ''')
+
+@app.route('/logout')
+@login_required
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
 
 @app.route('/')
+@login_required
 def index():
     links = ''.join(f'<a href="/download/{name}">{name}</a><br>' for name in files)
-    return f'<html><body><h1>Audio Files in iCloud Drive {directory or "root"}</h1>{links}</body></html>'
+    return f'<html><body><h1>Audio Files in iCloud Drive {directory or "root"}</h1>{links}<br><a href="/logout">Logout</a></body></html>'
 
 @app.route('/download/<filename>')
+@login_required
 def download(filename):
     if filename not in files:
         return "File not found", 404
@@ -58,6 +106,7 @@ def download(filename):
     return Response(response.content, mimetype=response.headers.get('Content-Type', 'application/octet-stream'), headers={"Content-Disposition": f"attachment; filename={filename}"})
 
 @app.route('/sync/<path:local_dir>')
+@login_required
 def sync(local_dir):
     if not os.path.exists(local_dir):
         return f"Local directory {local_dir} does not exist.", 400

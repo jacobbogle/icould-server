@@ -8,10 +8,11 @@ A simple Flask server to serve download links for audio files from an iCloud Dri
 
 2. Set up environment variables:
    - Copy `.env.example` to `.env`
-   - Fill in your Apple ID credentials in `.env`:
+   - Fill in your Apple ID credentials and a secret key in `.env`:
      ```
      APPLE_ID=your_apple_id@example.com
      APPLE_PASSWORD=your_apple_password
+     SECRET_KEY=your_secret_key_here
      ```
 
 3. Run the server:
@@ -26,6 +27,7 @@ A simple Flask server to serve download links for audio files from an iCloud Dri
 
 ## Features
 
+- **Authentication**: Login required. Default username: `admin`, password: `password`. Change in code for security.
 - **List and Download**: View audio files in the iCloud directory and download them.
 - **Sync Local to iCloud**: Visit `http://127.0.0.1:5000/sync/<local_directory_path>` to sync all audio files from a local directory to the iCloud folder. Uploads new/changed files and deletes iCloud files not present locally.
 
