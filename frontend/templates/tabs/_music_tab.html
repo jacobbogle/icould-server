@@ -1,0 +1,8 @@
+<h2>Music</h2>
+{% if music %}
+{% for name in music %}
+<a href="/download/{{ name }}">{{ name }}</a><br>
+{% endfor %}
+{% else %}
+<p>No music files found.</p>
+{% endif %}

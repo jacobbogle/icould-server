@@ -1,6 +1,6 @@
 import os
 from flask import Response, render_template, request, session, redirect, url_for
-from icloud_service import api, folder, files, refresh_files, extensions, directory, authenticate as icloud_authenticate, authenticated as icloud_authenticated, requires_2fa as icloud_requires_2fa, save_credentials, load_credentials, is_registered
+from icloud_service import api, folder, files_audiobooks, files_music, files_ebooks, files_documents, refresh_files, extensions_audiobooks, extensions_music, extensions_ebooks, extensions_documents, directory, authenticate as icloud_authenticate, authenticated as icloud_authenticated, requires_2fa as icloud_requires_2fa, save_credentials, load_credentials, is_registered
 from auth import create_user, delete_user, get_users
 
 def index():
@@ -16,7 +16,16 @@ def index():
             username = request.form['username']
             delete_user(username)
     users_list = get_users()
-    return render_template('index.html', files=list(files.keys()), directory=directory, username=session.get('username'), icloud_authenticated=icloud_authenticated, is_registered=is_registered(), users=users_list)
+    return render_template('index.html', 
+                           audiobooks=list(files_audiobooks.keys()), 
+                           music=list(files_music.keys()), 
+                           ebooks=list(files_ebooks.keys()), 
+                           documents=list(files_documents.keys()), 
+                           directory=directory, 
+                           username=session.get('username'), 
+                           icloud_authenticated=icloud_authenticated, 
+                           is_registered=is_registered(), 
+                           users=users_list)
 
 def download(filename):
     if filename not in files:

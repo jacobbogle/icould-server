@@ -1,0 +1,8 @@
+<h2>Ebooks</h2>
+{% if ebooks %}
+{% for name in ebooks %}
+<a href="/download/{{ name }}">{{ name }}</a><br>
+{% endfor %}
+{% else %}
+<p>No ebooks found.</p>
+{% endif %}

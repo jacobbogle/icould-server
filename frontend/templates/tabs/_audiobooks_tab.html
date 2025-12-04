@@ -1,6 +1,6 @@
 <h2>Audiobooks</h2>
-{% if files %}
-{% for name in files %}
+{% if audiobooks %}
+{% for name in audiobooks %}
 <a href="/download/{{ name }}">{{ name }}</a><br>
 {% endfor %}
 {% else %}

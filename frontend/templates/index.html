@@ -32,6 +32,9 @@
     
     <div class="tabs">
         <div class="tab active" onclick="showTab('audiobooks')">Audiobooks</div>
+        <div class="tab" onclick="showTab('music')">Music</div>
+        <div class="tab" onclick="showTab('ebooks')">Ebooks</div>
+        <div class="tab" onclick="showTab('documents')">Documents</div>
         <div class="tab" onclick="showTab('sync')">Sync</div>
         <div class="tab" onclick="showTab('settings')">Settings</div>
         {% if username == 'admin' %}
@@ -41,6 +44,18 @@
     
     <div id="audiobooks" class="tab-content active">
         {% include 'tabs/_audiobooks_tab.html' %}
+    </div>
+    
+    <div id="music" class="tab-content">
+        {% include 'tabs/_music_tab.html' %}
+    </div>
+    
+    <div id="ebooks" class="tab-content">
+        {% include 'tabs/_ebooks_tab.html' %}
+    </div>
+    
+    <div id="documents" class="tab-content">
+        {% include 'tabs/_documents_tab.html' %}
     </div>
     
     <div id="sync" class="tab-content">

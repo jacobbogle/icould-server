@@ -10,8 +10,14 @@ authenticated = False
 requires_2fa = False
 directory = ''
 folder = None
-extensions = ('.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a')
-files = {}
+extensions_audiobooks = ('.m4a', '.m4b')
+extensions_music = ('.mp3', '.wav', '.flac', '.aac', '.ogg')
+extensions_ebooks = ('.epub', '.mobi', '.azw', '.pdf')
+extensions_documents = ('.doc', '.docx', '.txt', '.rtf', '.odt')
+files_audiobooks = {}
+files_music = {}
+files_ebooks = {}
+files_documents = {}
 
 def load_credentials():
     if os.path.exists(CREDENTIALS_FILE):
@@ -63,14 +69,28 @@ def authenticate(twofa_code=None):
     return authenticated
 
 def refresh_files():
-    global files
+    global files_audiobooks, files_music, files_ebooks, files_documents
     if not authenticated or folder is None:
-        files = {}
+        files_audiobooks = {}
+        files_music = {}
+        files_ebooks = {}
+        files_documents = {}
         return
-    files = {}
+    files_audiobooks = {}
+    files_music = {}
+    files_ebooks = {}
+    files_documents = {}
     for child in folder.get_children():
-        if child.type == 'file' and child.name.lower().endswith(extensions):
-            files[child.name] = child
+        if child.type == 'file':
+            name_lower = child.name.lower()
+            if name_lower.endswith(extensions_audiobooks):
+                files_audiobooks[child.name] = child
+            elif name_lower.endswith(extensions_music):
+                files_music[child.name] = child
+            elif name_lower.endswith(extensions_ebooks):
+                files_ebooks[child.name] = child
+            elif name_lower.endswith(extensions_documents):
+                files_documents[child.name] = child
 
 def is_registered():
     creds = load_credentials()
