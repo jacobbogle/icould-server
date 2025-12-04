@@ -41,13 +41,79 @@ def login_required(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
+TEENS_FILE = os.path.join(os.path.dirname(__file__), 'teens.json')
+
+def load_teens():
+    if os.path.exists(TEENS_FILE):
+        with open(TEENS_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+def save_teens(teens):
+    with open(TEENS_FILE, 'w') as f:
+        json.dump(teens, f)
+
+def create_teen(parent_username, teen_username, password):
+    kids = load_kids()
+    teens = load_teens()
+    
+    # Check total family accounts limit (10)
+    current_kids = len(kids.get(parent_username, {}))
+    current_teens = len(teens.get(parent_username, {}))
+    if current_kids + current_teens >= 10:
+        return False, "Maximum 10 family accounts allowed per parent"
+    
+    if parent_username not in teens:
+        teens[parent_username] = {}
+    if teen_username in teens[parent_username]:
+        return False, "Teen account already exists"
+    teens[parent_username][teen_username] = hash_password(password)
+    save_teens(teens)
+    return True, "Teen account created successfully"
+
+def delete_teen(parent_username, teen_username):
+    teens = load_teens()
+    if parent_username in teens and teen_username in teens[parent_username]:
+        del teens[parent_username][teen_username]
+        save_teens(teens)
+        return True
+    return False
+
+def get_teens_for_user(username):
+    teens = load_teens()
+    return list(teens.get(username, {}).keys())
+
 def get_all_users():
     users = load_users()
     kids = load_kids()
+    teens = load_teens()
     all_users = dict(users)
     for parent_kids in kids.values():
         all_users.update(parent_kids)
+    for parent_teens in teens.values():
+        all_users.update(parent_teens)
     return all_users
+
+def get_user_type(username):
+    """Determine the type of user: 'admin', 'user', 'kid', or 'teen'"""
+    if username == 'admin':
+        return 'admin'
+    
+    users = load_users()
+    if username in users:
+        return 'user'
+    
+    kids = load_kids()
+    for parent_kids in kids.values():
+        if username in parent_kids:
+            return 'kid'
+    
+    teens = load_teens()
+    for parent_teens in teens.values():
+        if username in parent_teens:
+            return 'teen'
+    
+    return 'unknown'
 
 def login():
     error = False
@@ -84,13 +150,15 @@ def change_password():
             return render_template('change_password.html', error=error)
     return render_template('change_password.html')
 
-def create_user(username, password):
+def create_user(username, password, confirm_password=None):
+    if confirm_password is not None and password != confirm_password:
+        return False, "Passwords do not match"
     users = load_users()
     if username in users:
-        return False
+        return False, "User already exists"
     users[username] = hash_password(password)
     save_users(users)
-    return True
+    return True, "User created successfully"
 
 def delete_user(username):
     users = load_users()
@@ -112,15 +180,25 @@ def save_kids(kids):
     with open(KIDS_FILE, 'w') as f:
         json.dump(kids, f)
 
-def create_kid(parent_username, kid_username, password):
+def create_kid(parent_username, kid_username, password, confirm_password=None):
+    if confirm_password is not None and password != confirm_password:
+        return False, "Passwords do not match"
     kids = load_kids()
+    teens = load_teens()
+    
+    # Check total family accounts limit (10)
+    current_kids = len(kids.get(parent_username, {}))
+    current_teens = len(teens.get(parent_username, {}))
+    if current_kids + current_teens >= 10:
+        return False, "Maximum 10 family accounts allowed per parent"
+    
     if parent_username not in kids:
         kids[parent_username] = {}
     if kid_username in kids[parent_username]:
-        return False
+        return False, "Kid account already exists"
     kids[parent_username][kid_username] = hash_password(password)
     save_kids(kids)
-    return True
+    return True, "Kid account created successfully"
 
 def delete_kid(parent_username, kid_username):
     kids = load_kids()
@@ -133,3 +211,79 @@ def delete_kid(parent_username, kid_username):
 def get_kids_for_user(username):
     kids = load_kids()
     return list(kids.get(username, {}).keys())
+
+def create_teen(parent_username, teen_username, password, confirm_password=None):
+    if confirm_password is not None and password != confirm_password:
+        return False, "Passwords do not match"
+    teens = load_teens()
+    kids = load_kids()
+    
+    # Check total family accounts limit (10)
+    current_kids = len(kids.get(parent_username, {}))
+    current_teens = len(teens.get(parent_username, {}))
+    if current_kids + current_teens >= 10:
+        return False, "Maximum 10 family accounts allowed per parent"
+    
+    if parent_username not in teens:
+        teens[parent_username] = {}
+    if teen_username in teens[parent_username]:
+        return False, "Teen account already exists"
+    teens[parent_username][teen_username] = hash_password(password)
+    save_teens(teens)
+    return True, "Teen account created successfully"
+
+def change_kid_password(parent_username, kid_username, new_password, confirm_password):
+    if new_password != confirm_password:
+        return False, "Passwords do not match"
+    kids = load_kids()
+    if parent_username in kids and kid_username in kids[parent_username]:
+        kids[parent_username][kid_username] = hash_password(new_password)
+        save_kids(kids)
+        return True, "Kid password changed successfully"
+    return False, "Kid not found"
+
+def change_teen_password(parent_username, teen_username, new_password, confirm_password):
+    if new_password != confirm_password:
+        return False, "Passwords do not match"
+    teens = load_teens()
+    if parent_username in teens and teen_username in teens[parent_username]:
+        teens[parent_username][teen_username] = hash_password(new_password)
+        save_teens(teens)
+        return True, "Teen password changed successfully"
+    return False, "Teen not found"
+
+def change_user_password(admin_username, target_username, new_password, confirm_password):
+    """Admin can change any user's password (except admin's own password should be changed via settings)"""
+    if admin_username != 'admin':
+        return False, "Only admin can change user passwords"
+    if new_password != confirm_password:
+        return False, "Passwords do not match"
+    
+    users = load_users()
+    if target_username in users and target_username != 'admin':
+        users[target_username] = hash_password(new_password)
+        save_users(users)
+        return True, "User password changed successfully"
+    return False, "User not found or cannot change admin password"
+
+def get_organized_users():
+    """Return users organized by type: admin, regular users, and their kids/teens"""
+    users = load_users()
+    kids = load_kids()
+    teens = load_teens()
+    
+    organized = {
+        'admin': ['admin'] if 'admin' in users else [],
+        'regular_users': [user for user in users.keys() if user != 'admin'],
+        'family_accounts': {}
+    }
+    
+    # Add kids and teens for each parent
+    for parent in users.keys():
+        if parent != 'admin':
+            organized['family_accounts'][parent] = {
+                'kids': list(kids.get(parent, {}).keys()),
+                'teens': list(teens.get(parent, {}).keys())
+            }
+    
+    return organized

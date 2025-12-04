@@ -1,40 +1,40 @@
-<h2>Kids Management</h2>
+<h2>Teens Management</h2>
 
-<h3>Create New Kids Account</h3>
+<h3>Create New Teens Account</h3>
 <p><strong>Family Accounts: {{ kids|length + teens|length }}/10</strong></p>
 <form method="post" action="/">
-    <input type="hidden" name="action" value="create_kid">
-    <label>Kid Username: <input type="text" name="kid_username" required {% if kids|length + teens|length >= 10 %}disabled{% endif %}></label><br>
+    <input type="hidden" name="action" value="create_teen">
+    <label>Teen Username: <input type="text" name="teen_username" required {% if kids|length + teens|length >= 10 %}disabled{% endif %}></label><br>
     <label>Password: <input type="password" name="password" required {% if kids|length + teens|length >= 10 %}disabled{% endif %}></label><br>
     <label>Confirm Password: <input type="password" name="confirm_password" required {% if kids|length + teens|length >= 10 %}disabled{% endif %}></label><br>
     <button type="submit" {% if kids|length + teens|length >= 10 %}disabled{% endif %}>
         {% if kids|length + teens|length >= 10 %}
             Account Limit Reached (10 max)
         {% else %}
-            Create Kids Account
+            Create Teens Account
         {% endif %}
     </button>
 </form>
 
-<h3>Existing Kids Accounts</h3>
+<h3>Existing Teens Accounts</h3>
 <ul>
-    {% for kid in kids %}
+    {% for teen in teens %}
     <li>
-        {{ kid }}
-        <button type="button" onclick="togglePasswordChange('{{ kid }}')">Change Password</button>
+        {{ teen }}
+        <button type="button" onclick="togglePasswordChange('{{ teen }}')">Change Password</button>
         <form method="post" action="/" style="display:inline;">
-            <input type="hidden" name="action" value="delete_kid">
-            <input type="hidden" name="kid_username" value="{{ kid }}">
-            <button type="submit" onclick="return confirm('Are you sure you want to delete {{ kid }}?')">Delete</button>
+            <input type="hidden" name="action" value="delete_teen">
+            <input type="hidden" name="teen_username" value="{{ teen }}">
+            <button type="submit" onclick="return confirm('Are you sure you want to delete {{ teen }}?')">Delete</button>
         </form>
-        <div id="password-change-{{ kid }}" class="password-change-dropdown" style="display: none; margin-top: 5px;">
+        <div id="password-change-{{ teen }}" class="password-change-dropdown" style="display: none; margin-top: 5px;">
             <form method="post" action="/" style="display: inline;">
-                <input type="hidden" name="action" value="change_kid_password">
-                <input type="hidden" name="kid_username" value="{{ kid }}">
+                <input type="hidden" name="action" value="change_teen_password">
+                <input type="hidden" name="teen_username" value="{{ teen }}">
                 <label>New Password: <input type="password" name="new_password" required></label>
                 <label>Confirm Password: <input type="password" name="confirm_password" required></label>
                 <button type="submit">Update</button>
-                <button type="button" onclick="togglePasswordChange('{{ kid }}')">Cancel</button>
+                <button type="button" onclick="togglePasswordChange('{{ teen }}')">Cancel</button>
             </form>
         </div>
     </li>
@@ -69,12 +69,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Add password validation to create kid form
-    const createKidForm = document.querySelector('form[action="/"]');
-    if (createKidForm && createKidForm.querySelector('input[name="kid_username"]')) {
-        createKidForm.addEventListener('submit', function(e) {
-            const password = createKidForm.querySelector('input[name="password"]');
-            const confirmPassword = createKidForm.querySelector('input[name="confirm_password"]');
+    // Add password validation to create teen form
+    const createTeenForm = document.querySelector('form[action="/"]');
+    if (createTeenForm && createTeenForm.querySelector('input[name="teen_username"]')) {
+        createTeenForm.addEventListener('submit', function(e) {
+            const password = createTeenForm.querySelector('input[name="password"]');
+            const confirmPassword = createTeenForm.querySelector('input[name="confirm_password"]');
             
             if (password && confirmPassword && password.value !== confirmPassword.value) {
                 alert('Passwords do not match. Please try again.');

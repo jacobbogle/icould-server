@@ -14,6 +14,9 @@
 </head>
 <body>
     <div class="header">
+        <div style="float: left; margin-right: 20px;">
+            <a href="/logout" style="color: #0066cc; text-decoration: none; font-weight: bold;">Logout</a>
+        </div>
         <h1>iCloud Audio Server - {{ directory or "root" }}</h1>
         <p>Logged in as: {{ username }}</p>
         {% if username == 'admin' %}
@@ -35,11 +38,15 @@
         <div class="tab" onclick="showTab('music')">Music</div>
         <div class="tab" onclick="showTab('ebooks')">Ebooks</div>
         <div class="tab" onclick="showTab('documents')">Documents</div>
-        <div class="tab" onclick="showTab('kids')">Kids</div>
+        {% if user_type not in ['kid', 'teen'] %}
+        {% if user_type != 'admin' %}
+        <div class="tab" onclick="showTab('family')">Family</div>
+        {% endif %}
         <div class="tab" onclick="showTab('sync')">Sync</div>
         <div class="tab" onclick="showTab('settings')">Settings</div>
         {% if username == 'admin' %}
         <div class="tab" onclick="showTab('users')">Users</div>
+        {% endif %}
         {% endif %}
     </div>
     
@@ -59,9 +66,12 @@
         {% include 'tabs/_documents_tab.html' %}
     </div>
     
-    <div id="kids" class="tab-content">
-        {% include 'tabs/_kids_tab.html' %}
+    {% if user_type not in ['kid', 'teen'] %}
+    {% if user_type != 'admin' %}
+    <div id="family" class="tab-content">
+        {% include 'tabs/_family_tab.html' %}
     </div>
+    {% endif %}
     
     <div id="sync" class="tab-content">
         {% include 'tabs/_sync_tab.html' %}
@@ -76,8 +86,7 @@
         {% include 'tabs/_users_tab.html' %}
     </div>
     {% endif %}
-    
-    <br><a href="/logout">Logout</a>
+    {% endif %}
     
     <script>
         function showTab(tabId) {
@@ -85,9 +94,43 @@
             const contents = document.querySelectorAll('.tab-content');
             tabs.forEach(tab => tab.classList.remove('active'));
             contents.forEach(content => content.classList.remove('active'));
-            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
-            document.getElementById(tabId).classList.add('active');
+            
+            const tabElement = document.querySelector(`.tab[onclick="showTab('${tabId}')"]`);
+            const contentElement = document.getElementById(tabId);
+            
+            if (tabElement && contentElement) {
+                tabElement.classList.add('active');
+                contentElement.classList.add('active');
+                // Remember the active tab
+                localStorage.setItem('activeTab', tabId);
+            }
         }
+        
+        // Toggle password change dropdown for kids
+        function togglePasswordChange(kidUsername) {
+            const dropdown = document.getElementById(`password-change-${kidUsername}`);
+            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
+        }
+        
+        // Restore active tab on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTab = localStorage.getItem('activeTab');
+            if (savedTab) {
+                // Check if the tab exists on this page
+                const tabElement = document.querySelector(`.tab[onclick="showTab('${savedTab}')"]`);
+                const contentElement = document.getElementById(savedTab);
+                if (tabElement && contentElement) {
+                    showTab(savedTab);
+                } else {
+                    // If saved tab doesn't exist, clear it and default to audiobooks
+                    localStorage.removeItem('activeTab');
+                }
+            }
+        });
     </script>
 </body>
 </html>

@@ -10,6 +10,9 @@ backend/icloud_credentials.json
 # Kids accounts
 backend/kids.json
 
+# Teens accounts
+backend/teens.json
+
 # Admin password
 backend/admin_password.txt
 

@@ -1,26 +1,264 @@
 <h2>User Management</h2>
 
 <h3>Create New User</h3>
-<form method="post" action="/">
+<form method="post" action="/" id="createUserForm">
     <input type="hidden" name="action" value="create">
     <label>Username: <input type="text" name="username" required></label><br>
     <label>Password: <input type="password" name="password" required></label><br>
+    <label>Confirm Password: <input type="password" name="confirm_password" required></label><br>
+    
+    <div style="margin: 10px 0;">
+        <label><input type="checkbox" name="is_parent" value="true" id="isParentCheckbox"> Parent User</label><br>
+        <label><input type="checkbox" name="is_child" value="true" id="isChildCheckbox"> Child User</label><br>
+        <label><input type="checkbox" name="is_single" value="true" checked id="isSingleCheckbox"> Single User</label>
+    </div>
+    
+    <div id="childOptions" style="display: none; margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+        <label>Parent User: 
+            <select name="parent_username" required>
+                <option value="">Select Parent</option>
+                {% for parent in organized_users.regular_users %}
+                <option value="{{ parent }}">{{ parent }}</option>
+                {% endfor %}
+            </select>
+        </label><br>
+        
+        <div style="margin-top: 10px;">
+            <label><input type="checkbox" name="is_kid" value="true" id="isKidCheckbox"> Kid</label>
+            <label style="margin-left: 20px;"><input type="checkbox" name="is_teen" value="true" id="isTeenCheckbox"> Teen</label>
+        </div>
+    </div>
+    
     <button type="submit">Create User</button>
 </form>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isParentCheckbox = document.getElementById('isParentCheckbox');
+    const isChildCheckbox = document.getElementById('isChildCheckbox');
+    const isSingleCheckbox = document.getElementById('isSingleCheckbox');
+    const childOptions = document.getElementById('childOptions');
+    const isKidCheckbox = document.getElementById('isKidCheckbox');
+    const isTeenCheckbox = document.getElementById('isTeenCheckbox');
+    const form = document.getElementById('createUserForm');
+    
+    const checkboxes = [isParentCheckbox, isChildCheckbox, isSingleCheckbox];
+    
+    function updateForm() {
+        const isChild = isChildCheckbox.checked;
+        
+        if (isChild) {
+            childOptions.style.display = 'block';
+        } else {
+            childOptions.style.display = 'none';
+        }
+    }
+    
+    function validateForm(e) {
+        const checkedBoxes = checkboxes.filter(cb => cb.checked);
+        
+        if (checkedBoxes.length === 0) {
+            alert('Please select a user type: Parent, Child, or Single.');
+            e.preventDefault();
+            return false;
+        }
+        
+        if (checkedBoxes.length > 1) {
+            alert('Please select only one user type.');
+            e.preventDefault();
+            return false;
+        }
+        
+        const isChild = isChildCheckbox.checked;
+        if (isChild) {
+            const parentSelect = document.querySelector('select[name="parent_username"]');
+            const isKid = isKidCheckbox.checked;
+            const isTeen = isTeenCheckbox.checked;
+            
+            if (!parentSelect.value) {
+                alert('Please select a parent user for the child account.');
+                e.preventDefault();
+                return false;
+            }
+            if (!isKid && !isTeen) {
+                alert('Please select whether this child is a Kid or Teen.');
+                e.preventDefault();
+                return false;
+            }
+            if (isKid && isTeen) {
+                alert('Please select only one: Kid or Teen.');
+                e.preventDefault();
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    // Handle mutually exclusive checkbox selection
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Uncheck all other checkboxes
+                checkboxes.forEach(cb => {
+                    if (cb !== this) cb.checked = false;
+                });
+            }
+            updateForm();
+        });
+    });
+    
+    form.addEventListener('submit', validateForm);
+});
+
+// Password validation function
+function validatePasswordForm(form) {
+    const newPassword = form.querySelector('input[name="new_password"]');
+    const confirmPassword = form.querySelector('input[name="confirm_password"]');
+    
+    if (newPassword && confirmPassword && newPassword.value !== confirmPassword.value) {
+        alert('Passwords do not match. Please try again.');
+        return false;
+    }
+    return true;
+}
+
+// Add password validation to all password change forms
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordForms = document.querySelectorAll('form input[name="new_password"]');
+    passwordForms.forEach(function(input) {
+        const form = input.closest('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!validatePasswordForm(form)) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        }
+    });
+    
+    // Add password validation to create user form
+    const createUserForm = document.getElementById('createUserForm');
+    if (createUserForm) {
+        createUserForm.addEventListener('submit', function(e) {
+            const password = createUserForm.querySelector('input[name="password"]');
+            const confirmPassword = createUserForm.querySelector('input[name="confirm_password"]');
+            
+            if (password && confirmPassword && password.value !== confirmPassword.value) {
+                alert('Passwords do not match. Please try again.');
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
+});
+</script>
+
 <h3>Existing Users</h3>
+
+<h4>Admin Account</h4>
 <ul>
-    {% for user in users %}
+    {% for admin_user in organized_users.admin %}
     <li>
-        {{ user }}
-        {% if user != 'admin' %}
+        <strong>{{ admin_user }}</strong> (Administrator)
+    </li>
+    {% endfor %}
+</ul>
+
+<h4>Regular User Accounts</h4>
+<ul>
+    {% for user in organized_users.regular_users %}
+    <li>
+        <strong>{{ user }}</strong>
+        <button type="button" onclick="togglePasswordChange('{{ user }}')">Change Password</button>
         <form method="post" action="/" style="display:inline;">
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="username" value="{{ user }}">
             <button type="submit" onclick="return confirm('Are you sure you want to delete {{ user }}?')">Delete</button>
         </form>
-        {% endif %}
+        <div id="password-change-{{ user }}" class="password-change-dropdown" style="display: none; margin-top: 5px;">
+            <form method="post" action="/" style="display: inline;">
+                <input type="hidden" name="action" value="change_user_password">
+                <input type="hidden" name="target_username" value="{{ user }}">
+                <label>New Password: <input type="password" name="new_password" required></label>
+                <label>Confirm Password: <input type="password" name="confirm_password" required></label>
+                <button type="submit">Update</button>
+                <button type="button" onclick="togglePasswordChange('{{ user }}')">Cancel</button>
+            </form>
+        </div>
     </li>
     {% endfor %}
-</ul></content>
+</ul>
+
+<h4>Family Accounts</h4>
+{% for parent, accounts in organized_users.family_accounts.items() %}
+<div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+    <h5>Parent: <strong>{{ parent }}</strong> <em>({{ accounts.kids|length + accounts.teens|length }} accounts)</em></h5>
+    
+    {% if accounts.kids %}
+    <div style="margin-left: 20px;">
+        <strong>Kids:</strong>
+        <ul>
+            {% for kid in accounts.kids %}
+            <li>
+                {{ kid }}
+                <button type="button" onclick="togglePasswordChange('kid-{{ parent }}-{{ kid }}')">Change Password</button>
+                <form method="post" action="/" style="display:inline;">
+                    <input type="hidden" name="action" value="delete_kid">
+                    <input type="hidden" name="kid_username" value="{{ kid }}">
+                    <button type="submit" onclick="return confirm('Are you sure you want to delete kid {{ kid }}?')">Delete</button>
+                </form>
+                <div id="password-change-kid-{{ parent }}-{{ kid }}" class="password-change-dropdown" style="display: none; margin-top: 5px;">
+                    <form method="post" action="/" style="display: inline;">
+                        <input type="hidden" name="action" value="change_kid_password">
+                        <input type="hidden" name="kid_username" value="{{ kid }}">
+                        <label>New Password: <input type="password" name="new_password" required></label>
+                        <label>Confirm Password: <input type="password" name="confirm_password" required></label>
+                        <button type="submit">Update</button>
+                        <button type="button" onclick="togglePasswordChange('kid-{{ parent }}-{{ kid }}')">Cancel</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if accounts.teens %}
+    <div style="margin-left: 20px;">
+        <strong>Teens:</strong>
+        <ul>
+            {% for teen in accounts.teens %}
+            <li>
+                {{ teen }}
+                <button type="button" onclick="togglePasswordChange('teen-{{ parent }}-{{ teen }}')">Change Password</button>
+                <form method="post" action="/" style="display:inline;">
+                    <input type="hidden" name="action" value="delete_teen">
+                    <input type="hidden" name="teen_username" value="{{ teen }}">
+                    <button type="submit" onclick="return confirm('Are you sure you want to delete teen {{ teen }}?')">Delete</button>
+                </form>
+                <div id="password-change-teen-{{ parent }}-{{ teen }}" class="password-change-dropdown" style="display: none; margin-top: 5px;">
+                    <form method="post" action="/" style="display: inline;">
+                        <input type="hidden" name="action" value="change_teen_password">
+                        <input type="hidden" name="teen_username" value="{{ teen }}">
+                        <label>New Password: <input type="password" name="new_password" required></label>
+                        <label>Confirm Password: <input type="password" name="confirm_password" required></label>
+                        <button type="submit">Update</button>
+                        <button type="button" onclick="togglePasswordChange('teen-{{ parent }}-{{ teen }}')">Cancel</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if not accounts.kids and not accounts.teens %}
+    <div style="margin-left: 20px; color: #666; font-style: italic;">
+        No kids or teens accounts yet
+    </div>
+    {% endif %}
+</div>
+{% endfor %}</content>
 <parameter name="filePath">c:\Users\Bogle\Documents\Dev\iCloud-Server\frontend\templates\tabs\_users_tab.html

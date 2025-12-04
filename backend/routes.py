@@ -1,7 +1,7 @@
 import os
 from flask import Response, render_template, request, session, redirect, url_for
 from icloud_service import api, folder, files_audiobooks, files_music, files_ebooks, files_documents, refresh_files, extensions_audiobooks, extensions_music, extensions_ebooks, extensions_documents, directory, authenticate as icloud_authenticate, authenticated as icloud_authenticated, requires_2fa as icloud_requires_2fa, save_credentials, load_credentials, is_registered
-from auth import create_user, delete_user, get_users, create_kid, delete_kid, get_kids_for_user
+from auth import create_user, delete_user, get_all_users, create_kid, delete_kid, get_kids_for_user, create_teen, delete_teen, get_teens_for_user, get_user_type, change_kid_password, change_teen_password, change_user_password, get_organized_users
 
 def index():
     username = session.get('username')
@@ -14,7 +14,27 @@ def index():
                 return "Access denied", 403
             username_form = request.form['username']
             password = request.form['password']
-            create_user(username_form, password)
+            
+            is_child = request.form.get('is_child') == 'true'
+            is_parent = request.form.get('is_parent') == 'true'
+            is_single = request.form.get('is_single') == 'true'
+            
+            if is_child:
+                parent_username = request.form['parent_username']
+                is_kid = request.form.get('is_kid') == 'true'
+                is_teen = request.form.get('is_teen') == 'true'
+                confirm_password = request.form.get('confirm_password')
+                
+                if is_kid:
+                    success, message = create_kid(parent_username, username_form, password, confirm_password)
+                elif is_teen:
+                    success, message = create_teen(parent_username, username_form, password, confirm_password)
+                else:
+                    success, message = False, "Must specify if child is kid or teen"
+            else:
+                # Create regular user (parent or single)
+                confirm_password = request.form.get('confirm_password')
+                success, message = create_user(username_form, password, confirm_password)
         elif action == 'delete':
             if username != 'admin':
                 return "Access denied", 403
@@ -23,12 +43,55 @@ def index():
         elif action == 'create_kid':
             kid_username = request.form['kid_username']
             password = request.form['password']
-            create_kid(username, kid_username, password)
+            confirm_password = request.form.get('confirm_password')
+            success, message = create_kid(username, kid_username, password, confirm_password)
+            # For now, just proceed - error handling could be added later with flash messages
         elif action == 'delete_kid':
             kid_username = request.form['kid_username']
             delete_kid(username, kid_username)
-    users_list = get_users()
+        elif action == 'create_teen':
+            teen_username = request.form['teen_username']
+            password = request.form['password']
+            confirm_password = request.form.get('confirm_password')
+            success, message = create_teen(username, teen_username, password, confirm_password)
+            # For now, just proceed - error handling could be added later with flash messages
+        elif action == 'create_family_account':
+            family_username = request.form['family_username']
+            password = request.form['password']
+            confirm_password = request.form.get('confirm_password')
+            is_kid = request.form.get('is_kid') == 'true'
+            is_teen = request.form.get('is_teen') == 'true'
+            
+            if is_kid:
+                success, message = create_kid(username, family_username, password, confirm_password)
+            elif is_teen:
+                success, message = create_teen(username, family_username, password, confirm_password)
+            else:
+                success, message = False, "Must specify if account is for Kid or Teen"
+            # For now, just proceed - error handling could be added later with flash messages
+        elif action == 'delete_teen':
+            teen_username = request.form['teen_username']
+            delete_teen(username, teen_username)
+        elif action == 'change_kid_password':
+            kid_username = request.form['kid_username']
+            new_password = request.form['new_password']
+            confirm_password = request.form['confirm_password']
+            success, message = change_kid_password(username, kid_username, new_password, confirm_password)
+        elif action == 'change_teen_password':
+            teen_username = request.form['teen_username']
+            new_password = request.form['new_password']
+            confirm_password = request.form['confirm_password']
+            success, message = change_teen_password(username, teen_username, new_password, confirm_password)
+        elif action == 'change_user_password':
+            target_username = request.form['target_username']
+            new_password = request.form['new_password']
+            confirm_password = request.form['confirm_password']
+            success, message = change_user_password(username, target_username, new_password, confirm_password)
+    users_list = get_all_users()
     kids_list = get_kids_for_user(username) if username else []
+    teens_list = get_teens_for_user(username) if username else []
+    user_type = get_user_type(username) if username else 'unknown'
+    organized_users = get_organized_users()
     return render_template('index.html', 
                            audiobooks=list(files_audiobooks.keys()), 
                            music=list(files_music.keys()), 
@@ -39,7 +102,10 @@ def index():
                            icloud_authenticated=icloud_authenticated, 
                            is_registered=is_registered(), 
                            users=users_list,
-                           kids=kids_list)
+                           organized_users=organized_users,
+                           kids=kids_list,
+                           teens=teens_list,
+                           user_type=user_type)
 
 def download(filename):
     if filename not in files:
