@@ -1,0 +1,23 @@
+<h2>Kids Management</h2>
+
+<h3>Create New Kids Account</h3>
+<form method="post" action="/">
+    <input type="hidden" name="action" value="create_kid">
+    <label>Kid Username: <input type="text" name="kid_username" required></label><br>
+    <label>Password: <input type="password" name="password" required></label><br>
+    <button type="submit">Create Kids Account</button>
+</form>
+
+<h3>Existing Kids Accounts</h3>
+<ul>
+    {% for kid in kids %}
+    <li>
+        {{ kid }}
+        <form method="post" action="/" style="display:inline;">
+            <input type="hidden" name="action" value="delete_kid">
+            <input type="hidden" name="kid_username" value="{{ kid }}">
+            <button type="submit" onclick="return confirm('Are you sure you want to delete {{ kid }}?')">Delete</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>

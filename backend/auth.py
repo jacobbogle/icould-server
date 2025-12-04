@@ -41,13 +41,21 @@ def login_required(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
+def get_all_users():
+    users = load_users()
+    kids = load_kids()
+    all_users = dict(users)
+    for parent_kids in kids.values():
+        all_users.update(parent_kids)
+    return all_users
+
 def login():
     error = False
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        users = load_users()
-        if username in users and users[username] == hash_password(password):
+        all_users = get_all_users()
+        if username in all_users and all_users[username] == hash_password(password):
             session['username'] = username
             return redirect(url_for('index'))
         else:
@@ -92,5 +100,36 @@ def delete_user(username):
         return True
     return False
 
-def get_users():
-    return list(load_users().keys())
+KIDS_FILE = os.path.join(os.path.dirname(__file__), 'kids.json')
+
+def load_kids():
+    if os.path.exists(KIDS_FILE):
+        with open(KIDS_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+def save_kids(kids):
+    with open(KIDS_FILE, 'w') as f:
+        json.dump(kids, f)
+
+def create_kid(parent_username, kid_username, password):
+    kids = load_kids()
+    if parent_username not in kids:
+        kids[parent_username] = {}
+    if kid_username in kids[parent_username]:
+        return False
+    kids[parent_username][kid_username] = hash_password(password)
+    save_kids(kids)
+    return True
+
+def delete_kid(parent_username, kid_username):
+    kids = load_kids()
+    if parent_username in kids and kid_username in kids[parent_username]:
+        del kids[parent_username][kid_username]
+        save_kids(kids)
+        return True
+    return False
+
+def get_kids_for_user(username):
+    kids = load_kids()
+    return list(kids.get(username, {}).keys())

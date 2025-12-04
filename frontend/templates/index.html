@@ -35,6 +35,7 @@
         <div class="tab" onclick="showTab('music')">Music</div>
         <div class="tab" onclick="showTab('ebooks')">Ebooks</div>
         <div class="tab" onclick="showTab('documents')">Documents</div>
+        <div class="tab" onclick="showTab('kids')">Kids</div>
         <div class="tab" onclick="showTab('sync')">Sync</div>
         <div class="tab" onclick="showTab('settings')">Settings</div>
         {% if username == 'admin' %}
@@ -56,6 +57,10 @@
     
     <div id="documents" class="tab-content">
         {% include 'tabs/_documents_tab.html' %}
+    </div>
+    
+    <div id="kids" class="tab-content">
+        {% include 'tabs/_kids_tab.html' %}
     </div>
     
     <div id="sync" class="tab-content">

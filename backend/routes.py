@@ -1,31 +1,45 @@
 import os
 from flask import Response, render_template, request, session, redirect, url_for
 from icloud_service import api, folder, files_audiobooks, files_music, files_ebooks, files_documents, refresh_files, extensions_audiobooks, extensions_music, extensions_ebooks, extensions_documents, directory, authenticate as icloud_authenticate, authenticated as icloud_authenticated, requires_2fa as icloud_requires_2fa, save_credentials, load_credentials, is_registered
-from auth import create_user, delete_user, get_users
+from auth import create_user, delete_user, get_users, create_kid, delete_kid, get_kids_for_user
 
 def index():
+    username = session.get('username')
     if request.method == 'POST':
-        if session.get('username') != 'admin':
+        if not username:
             return "Access denied", 403
         action = request.form.get('action')
         if action == 'create':
-            username = request.form['username']
+            if username != 'admin':
+                return "Access denied", 403
+            username_form = request.form['username']
             password = request.form['password']
-            create_user(username, password)
+            create_user(username_form, password)
         elif action == 'delete':
-            username = request.form['username']
-            delete_user(username)
+            if username != 'admin':
+                return "Access denied", 403
+            username_form = request.form['username']
+            delete_user(username_form)
+        elif action == 'create_kid':
+            kid_username = request.form['kid_username']
+            password = request.form['password']
+            create_kid(username, kid_username, password)
+        elif action == 'delete_kid':
+            kid_username = request.form['kid_username']
+            delete_kid(username, kid_username)
     users_list = get_users()
+    kids_list = get_kids_for_user(username) if username else []
     return render_template('index.html', 
                            audiobooks=list(files_audiobooks.keys()), 
                            music=list(files_music.keys()), 
                            ebooks=list(files_ebooks.keys()), 
                            documents=list(files_documents.keys()), 
                            directory=directory, 
-                           username=session.get('username'), 
+                           username=username, 
                            icloud_authenticated=icloud_authenticated, 
                            is_registered=is_registered(), 
-                           users=users_list)
+                           users=users_list,
+                           kids=kids_list)
 
 def download(filename):
     if filename not in files:
