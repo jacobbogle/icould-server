@@ -28,12 +28,16 @@ if directory:
 else:
     folder = api.drive.root
 
-# Get audio files
 extensions = ('.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a')
-files = {}
-for child in folder.get_children():
-    if child.type == 'file' and child.name.lower().endswith(extensions):
-        files[child.name] = child
+
+def refresh_files():
+    global files
+    files = {}
+    for child in folder.get_children():
+        if child.type == 'file' and child.name.lower().endswith(extensions):
+            files[child.name] = child
+
+refresh_files()
 
 app = Flask(__name__)
 
@@ -49,6 +53,20 @@ def download(filename):
     node = files[filename]
     response = node.open()
     return Response(response.content, mimetype=response.headers.get('Content-Type', 'application/octet-stream'), headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+@app.route('/sync/<path:local_dir>')
+def sync(local_dir):
+    if not os.path.exists(local_dir):
+        return f"Local directory {local_dir} does not exist.", 400
+    local_files = [f for f in os.listdir(local_dir) if os.path.isfile(os.path.join(local_dir, f)) and f.lower().endswith(extensions)]
+    synced = 0
+    for f in local_files:
+        local_path = os.path.join(local_dir, f)
+        with open(local_path, 'rb') as file_obj:
+            api.drive.send_file(folder.data['drivewsid'], file_obj)
+        synced += 1
+    refresh_files()
+    return f"Synced {synced} files from {local_dir} to iCloud Drive {directory or 'root'}."
 
 if __name__ == '__main__':
     app.run(debug=True)
