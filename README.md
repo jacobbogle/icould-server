@@ -29,7 +29,7 @@ A simple Flask server to serve download links for audio files from an iCloud Dri
 ## Features
 
 - **List and Download**: View audio files in the iCloud directory and download them.
-- **Sync Local to iCloud**: Visit `http://127.0.0.1:5000/sync/<local_directory_path>` to upload all audio files from a local directory to the iCloud folder. Replaces existing files with the same name.
+- **Sync Local to iCloud**: Visit `http://127.0.0.1:5000/sync/<local_directory_path>` to sync all audio files from a local directory to the iCloud folder. Uploads new/changed files and deletes iCloud files not present locally.
 
 ## Supported Formats
 
