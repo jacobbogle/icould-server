@@ -2,12 +2,54 @@
 <html>
 <head>
     <title>iCloud Audio Server</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .tabs { display: flex; border-bottom: 1px solid #ccc; }
+        .tab { padding: 10px 20px; cursor: pointer; background: #f1f1f1; border: 1px solid #ccc; border-bottom: none; }
+        .tab.active { background: white; border-bottom: 1px solid white; }
+        .tab-content { display: none; padding: 20px; border: 1px solid #ccc; border-top: none; }
+        .tab-content.active { display: block; }
+    </style>
 </head>
 <body>
-    <h1>Audio Files in iCloud Drive {{ directory or "root" }}</h1>
-    {% for name in files %}
-    <a href="/download/{{ name }}">{{ name }}</a><br>
-    {% endfor %}
+    <h1>iCloud Audio Server - {{ directory or "root" }}</h1>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('files')">Audio Files</div>
+        <div class="tab" onclick="showTab('sync')">Sync</div>
+    </div>
+    
+    <div id="files" class="tab-content active">
+        <h2>Audio Files</h2>
+        {% if files %}
+        {% for name in files %}
+        <a href="/download/{{ name }}">{{ name }}</a><br>
+        {% endfor %}
+        {% else %}
+        <p>No audio files found.</p>
+        {% endif %}
+    </div>
+    
+    <div id="sync" class="tab-content">
+        <h2>Sync Local Directory to iCloud</h2>
+        <form action="/sync" method="post">
+            <label for="local_dir">Local Directory Path:</label><br>
+            <input type="text" id="local_dir" name="local_dir" required><br><br>
+            <input type="submit" value="Sync">
+        </form>
+    </div>
+    
     <br><a href="/logout">Logout</a>
+    
+    <script>
+        function showTab(tabId) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+    </script>
 </body>
 </html>

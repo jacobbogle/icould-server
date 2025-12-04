@@ -1,5 +1,5 @@
 import os
-from flask import Response, render_template
+from flask import Response, render_template, request
 from icloud_service import api, folder, files, refresh_files, extensions, directory
 
 def index():
@@ -12,7 +12,11 @@ def download(filename):
     response = node.open()
     return Response(response.content, mimetype=response.headers.get('Content-Type', 'application/octet-stream'), headers={"Content-Disposition": f"attachment; filename={filename}"})
 
-def sync(local_dir):
+def sync(local_dir=None):
+    if request.method == 'POST':
+        local_dir = request.form.get('local_dir')
+    if not local_dir:
+        return "Local directory not provided.", 400
     if not os.path.exists(local_dir):
         return f"Local directory {local_dir} does not exist.", 400
     local_files = [f for f in os.listdir(local_dir) if os.path.isfile(os.path.join(local_dir, f)) and f.lower().endswith(extensions)]
