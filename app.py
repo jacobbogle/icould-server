@@ -1,25 +1,54 @@
 import os
 import sys
-from flask import Flask, send_from_directory
+from flask import Flask, Response
+from pyicloud import PyiCloudService
 
-if len(sys.argv) > 1:
-    audio_dir = sys.argv[1]
+apple_id = os.getenv('APPLE_ID')
+password = os.getenv('APPLE_PASSWORD')
+
+if not apple_id or not password:
+    print("Please set APPLE_ID and APPLE_PASSWORD environment variables.")
+    sys.exit(1)
+
+api = PyiCloudService(apple_id, password)
+
+if api.requires_2fa:
+    print("Two-factor authentication required. Please handle manually.")
+    sys.exit(1)
+
+directory = sys.argv[1] if len(sys.argv) > 1 else ''
+
+# Get the folder node
+if directory:
+    try:
+        folder = api.drive.root[directory]
+    except KeyError:
+        print(f"Directory {directory} not found in iCloud Drive root.")
+        sys.exit(1)
 else:
-    audio_dir = 'audio'
+    folder = api.drive.root
+
+# Get audio files
+extensions = ('.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a')
+files = {}
+for child in folder.get_children():
+    if child.type == 'file' and child.name.lower().endswith(extensions):
+        files[child.name] = child
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    if not os.path.exists(audio_dir):
-        return f'<html><body>Directory {audio_dir} does not exist.</body></html>'
-    files = [f for f in os.listdir(audio_dir) if f.lower().endswith(('.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a'))]
-    links = ''.join(f'<a href="/download/{f}">{f}</a><br>' for f in files)
-    return f'<html><body><h1>Audio Files in {audio_dir}</h1>{links}</body></html>'
+    links = ''.join(f'<a href="/download/{name}">{name}</a><br>' for name in files)
+    return f'<html><body><h1>Audio Files in iCloud Drive {directory or "root"}</h1>{links}</body></html>'
 
 @app.route('/download/<filename>')
 def download(filename):
-    return send_from_directory(audio_dir, filename, as_attachment=True)
+    if filename not in files:
+        return "File not found", 404
+    node = files[filename]
+    response = node.open()
+    return Response(response.content, mimetype=response.headers.get('Content-Type', 'application/octet-stream'), headers={"Content-Disposition": f"attachment; filename={filename}"})
 
 if __name__ == '__main__':
     app.run(debug=True)
